@@ -17,7 +17,6 @@ export type Work = {
 };
 
 export const WORKS: Work[] = [
-  { src: "something-fishy", title: "Something Fishy", category: "product", label: "Sneaker concept", format: "3:4", seconds: 8, length: 15, layer: "Grade" },
   { src: "nike-airforce", title: "Nike AirForce Drop", category: "product", label: "Sneakers", format: "4:5", seconds: 8, length: 15, layer: "Price card" },
   { src: "sneaker-dust", title: "Sneaker Dust", category: "product", label: "Sneaker concept", format: "3:4", seconds: 8, length: 15, layer: "Grade" },
   { src: "tapovan-noodles", title: "Tapovan Inn Noodles", category: "product", label: "Restaurant", format: "4:5", seconds: 8, length: 15, layer: "End card" },
@@ -38,6 +37,7 @@ export const WORKS: Work[] = [
   { src: "faux-hawk", title: "Faux Hawk", category: "product", label: "Barbershop", format: "3:4", seconds: 8, length: 15, layer: "End card" },
   { src: "krosskube-sale", title: "KrossKube Sale", category: "motion", label: "Promo", format: "4:5", seconds: 8, length: 15, layer: "Promo" },
   { src: "flame-breathing", title: "Flame Breathing", category: "motion", label: "Anime edit", format: "16:9", seconds: 8, length: 10, layer: "VFX" },
+  { src: "something-fishy", title: "Something Fishy", category: "product", label: "Sneaker concept", format: "3:4", seconds: 8, length: 15, layer: "Grade" },
 ];
 
 export const FILTERS: { id: Category | "all"; label: string }[] = [
