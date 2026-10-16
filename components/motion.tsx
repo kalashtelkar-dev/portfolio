@@ -9,7 +9,7 @@ export default function Motion() {
     const onAnchor = (e: MouseEvent) => {
       const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#"]');
       const t = a && document.querySelector(a.getAttribute("href")!);
-      if (t && scroller.lenis) { e.preventDefault(); scroller.lenis.scrollTo(t as HTMLElement, { duration: 1.4, offset: -60 }) }
+      if (t && scroller.lenis) { e.preventDefault(); scroller.lenis.scrollTo(t as HTMLElement, { duration: 1.4, offset: -72 }) }
     };
     document.addEventListener("click", onAnchor);
 

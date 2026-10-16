@@ -141,7 +141,7 @@ export default function Editor() {
 
   return (
     <section ref={root} id="top" aria-label="Showreel editor"
-      className="grid gap-3 px-[max(16px,env(safe-area-inset-left))] pt-[calc(64px+env(safe-area-inset-top))] pb-3 min-[981px]:h-svh min-[981px]:grid-rows-[1fr_auto] min-h-svh">
+      className="grid gap-3 px-[max(16px,env(safe-area-inset-left))] pt-[calc(72px+env(safe-area-inset-top))] pb-3 min-[981px]:h-svh min-[981px]:grid-rows-[1fr_auto] min-h-svh">
       <div className="grid min-h-0 gap-3 max-[980px]:contents min-[981px]:grid-cols-[minmax(300px,1fr)_1.6fr]">
         {/* Project panel */}
         <div className="panel">

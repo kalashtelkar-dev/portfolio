@@ -9,7 +9,7 @@ const ext = { target: "_blank", rel: "noopener" } as const;
 export default function Home() {
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-[60] flex h-[calc(52px+env(safe-area-inset-top))] items-center justify-between gap-4 border-b border-line bg-bg/80 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-md">
+      <header className="fixed inset-x-0 top-0 z-[60] flex h-[calc(60px+env(safe-area-inset-top))] items-center justify-between gap-4 border-b border-line bg-bg/80 px-[max(16px,env(safe-area-inset-left))] pt-[env(safe-area-inset-top)] min-[981px]:px-6 backdrop-blur-md">
         <a href="#top" aria-label="AdsCut.in, back to top" className="flex items-center">
           <img src="/logo.svg" alt="AdsCut.in" width={120} height={25} className="h-[22px] w-auto" />
         </a>
@@ -18,7 +18,7 @@ export default function Home() {
             <a key={h} href={h} className="rounded-lg px-3 py-2 text-dim transition-colors hover:bg-p2 hover:text-fg">{t}</a>
           ))}
         </nav>
-        <a className="btn" href={FIVERR_URL} {...ext}>Order on Fiverr</a>
+        <a className="btn min-h-10 rounded-lg px-4 text-[13px]" href={FIVERR_URL} {...ext}>Order on Fiverr</a>
       </header>
 
       <Editor />
@@ -73,6 +73,7 @@ export default function Home() {
       <footer className="gx grid grid-cols-[1fr_auto] gap-[18px] border-t border-line py-7 text-[13px] text-dim">
         <span>© 2026 AdsCut.in · UGC, product ads, motion graphics</span>
         <nav aria-label="Footer" className="flex gap-[18px]"><a className="hover:text-fg" href="#bin">Work</a><a className="hover:text-fg" href="#export">Packages</a><a className="hover:text-fg" href={FIVERR_URL} {...ext}>Fiverr</a></nav>
+        <p className="col-span-full text-xs">Powered by <a className="font-medium text-fg underline-offset-4 hover:text-brand hover:underline" href="https://deepsoch.ai/" {...ext}>Deepsoch AI</a></p>
       </footer>
 
       <Motion />
