@@ -1,7 +1,7 @@
 // Everything the site shows lives here. To add an ad: put the source in videos/,
 // run `npm run media -- videos/<file> <name> [loop-start]`, then add one entry.
 
-export const FIVERR_URL = "https://www.fiverr.com/"; // TODO: your gig URL
+export const FIVERR_URL = "https://www.fiverr.com/s/Bbba8YG";
 
 export type Category = "ugc" | "product" | "motion";
 
