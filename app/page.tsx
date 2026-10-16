@@ -1,5 +1,6 @@
 import Editor from "@/components/editor";
 import Bin from "@/components/bin";
+import Intro from "@/components/intro";
 import Effects from "@/components/effects";
 import Motion from "@/components/motion";
 import { FAQ, FIVERR_URL, PACKAGES } from "@/data/site";
@@ -24,6 +25,7 @@ export default function Home() {
       <Editor />
 
       <main>
+        <Intro />
         <Bin />
         <Effects />
 

@@ -23,7 +23,7 @@ export default function Motion() {
       ScrollTrigger.batch(".tile", { start: "top 92%", once: true, onEnter: (els) => gsap.from(els, { clearProps: CLEAR, opacity: 0, y: 50, clipPath: "inset(0 0 100% 0)", duration: 1, stagger: 0.05, ease: "expo.out" }) });
       gsap.from(".fxp", { clearProps: CLEAR, opacity: 0, y: 80, rotateX: -12, transformPerspective: 900, duration: 1.2, stagger: 0.12, ease: "expo.out", scrollTrigger: { trigger: "#effects", start: "top 70%" } });
       gsap.from(".preset", { clearProps: CLEAR, opacity: 0, y: 80, duration: 1.1, stagger: 0.1, ease: "expo.out", scrollTrigger: { trigger: "#export", start: "top 70%" } });
-      gsap.from("#help details", { clearProps: CLEAR, opacity: 0, x: 30, duration: 0.8, stagger: 0.06, ease: "expo.out", scrollTrigger: { trigger: "#help", start: "top 75%" } });
+      gsap.from("#help details", { clearProps: CLEAR, opacity: 0, y: 24, duration: 0.8, stagger: 0.06, ease: "expo.out", scrollTrigger: { trigger: "#help", start: "top 75%" } });
       gsap.from("#final h2", { clearProps: CLEAR, yPercent: 30, opacity: 0, duration: 1.2, ease: "expo.out", scrollTrigger: { trigger: "#final", start: "top 75%" } });
     });
 

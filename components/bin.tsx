@@ -71,7 +71,7 @@ export default function Bin() {
       <div ref={grid} className="grid grid-cols-2 gap-2.5 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] sm:gap-3.5">
         {shown.map((w) => (
           <button key={w.src} data-src={w.src} onClick={() => setOpen(w)} aria-label={`Play ${w.title}`}
-            className="tile grid min-w-0 gap-2.5 rounded-[14px] border border-line bg-p1 p-2 sm:p-2.5 text-left transition-[border-color,translate,background-color] duration-500 ease-out-expo hover:-translate-y-1 hover:border-brand hover:bg-p2">
+            className="tile grid min-w-0 grid-cols-1 gap-2.5 rounded-[14px] border border-line bg-p1 p-2 sm:p-2.5 text-left transition-[border-color,translate,background-color] duration-500 ease-out-expo hover:-translate-y-1 hover:border-brand hover:bg-p2">
             <span className="relative aspect-[4/5] overflow-hidden rounded-lg bg-black"
               onPointerMove={(e) => {
                 if (e.pointerType !== "mouse") return; // touch scrolls; the centred row plays instead
