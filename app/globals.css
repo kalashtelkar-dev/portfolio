@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+/* The site is an editing app: graphite panels, brand green for the playhead and actions. */
+@theme {
+  --color-bg: #0d0e0f;
+  --color-p1: #151719;
+  --color-p2: #1c1f22;
+  --color-p3: #262a2e;
+  --color-line: #2c3135;
+  --color-fg: #eceee9;
+  --color-dim: #8e9490;
+  --color-brand: #a3e635;
+  --color-brand-ink: #0c1204;
+  --color-v2: #6d5dfc;
+  --color-a1: #2dd4bf;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, Menlo, monospace;
+}
+
+:root { color-scheme: dark }
+html { background: var(--color-bg) }
+body { background: var(--color-bg); color: var(--color-fg); overflow-x: clip }
+:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 3px }
+summary { list-style: none }
+summary::-webkit-details-marker { display: none }
+
+@utility gx { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)) }
+
+@layer components {
+  .panel { @apply relative min-h-0 overflow-hidden rounded-[14px] border border-line bg-p1 }
+  .ph { @apply flex items-center justify-between gap-3 border-b border-line px-3.5 py-2.5 text-xs text-dim }
+  .kicker { @apply mb-4 inline-flex items-center gap-2 font-mono text-xs font-medium text-brand }
+  .kicker::before { content: ""; @apply size-2 rounded-[2px] bg-current }
+  .h2 { @apply text-[clamp(44px,6.4vw,112px)] leading-[0.9] font-bold tracking-[-0.05em] }
+  .h2 em { @apply text-brand not-italic }
+
+  .btn { @apply relative isolate inline-flex min-h-11 items-center gap-2.5 overflow-hidden rounded-[10px] bg-brand px-[18px] text-sm font-semibold text-brand-ink transition-transform duration-300 ease-out-expo active:scale-[.97] }
+  .btn::after { content: ""; @apply absolute inset-0 -z-10 -translate-x-full bg-white/35 transition-transform duration-500 ease-out-expo }
+  .btn:hover::after { @apply translate-x-0 }
+  .btn-big { @apply min-h-14 rounded-xl px-[26px] text-base }
+  .btn-ghost { @apply bg-p2 text-fg }
+  .btn-ghost::after { @apply bg-p3 }
+
+  /* timeline */
+  .lanes { display: grid; grid-template-rows: 26px 1fr 1.4fr 1fr; will-change: transform }
+  .clip { @apply absolute top-[5px] bottom-[5px] flex items-center gap-2 overflow-hidden rounded-md px-2 text-xs font-medium whitespace-nowrap }
+  .playhead { @apply pointer-events-none absolute inset-y-0 left-1/2 z-10 -ml-px w-0.5 bg-brand max-[980px]:left-[30%] }
+  .playhead::before { content: ""; position: absolute; top: 0; left: -7px; width: 16px; height: 14px; background: var(--color-brand); clip-path: polygon(0 0, 100% 0, 100% 60%, 50% 100%, 0 60%) }
+
+  /* monitor safe-area corners */
+  .guides i { position: absolute; width: 22px; height: 22px; border: 2px solid rgb(255 255 255 / .6) }
+  .guides i:nth-child(1) { left: 0; top: 0; border-right: 0; border-bottom: 0 }
+  .guides i:nth-child(2) { right: 0; top: 0; border-left: 0; border-bottom: 0 }
+  .guides i:nth-child(3) { left: 0; bottom: 0; border-right: 0; border-top: 0 }
+  .guides i:nth-child(4) { right: 0; bottom: 0; border-left: 0; border-top: 0 }
+
+  /* effect demos */
+  .cap-word { @apply text-[30px] leading-none font-extrabold tracking-[-0.02em] text-white uppercase opacity-35 transition-[opacity,transform,color] duration-300 ease-out-expo; text-shadow: 0 3px 0 #000, 0 0 18px rgb(0 0 0 / .6); transform: scale(.9) }
+  .cap-word[data-state="on"] { @apply text-brand opacity-100; transform: scale(1.08) }
+  .cap-word[data-state="done"] { @apply opacity-100; transform: none }
+  .graded { filter: saturate(1.25) contrast(1.15) brightness(.95) sepia(.08); clip-path: inset(0 0 0 var(--cut, 50%)) }
+  .log { filter: saturate(.25) contrast(.72) brightness(1.15) }
+
+  /* export preset button that fills like a render bar */
+  .render { @apply relative isolate flex h-[52px] items-center justify-center overflow-hidden rounded-[10px] bg-p3 font-semibold }
+  .render i { @apply absolute inset-0 -z-10 origin-left scale-x-0 bg-brand transition-transform duration-[1.1s]; transition-timing-function: cubic-bezier(.7, 0, .2, 1) }
+  .group:hover .render i, .render:focus-visible i { @apply scale-x-100 }
+}
+
+.rec-dot { animation: blink 1.2s steps(2) infinite }
+@keyframes blink { 50% { opacity: 0 } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0s !important; animation: none !important }
+  .cap-word { opacity: 1 !important; transform: none !important }
+}
