@@ -38,10 +38,10 @@ summary::-webkit-details-marker { display: none }
   .h2 { @apply text-[clamp(44px,6.4vw,112px)] leading-[0.9] font-bold tracking-[-0.05em] }
   .h2 em { @apply text-brand not-italic }
 
-  .btn { @apply relative isolate inline-flex min-h-11 items-center gap-2.5 overflow-hidden rounded-[10px] bg-brand px-[18px] text-sm font-semibold text-brand-ink transition-transform duration-300 ease-out-expo active:scale-[.97] }
+  .btn { @apply relative isolate inline-flex min-h-11 items-center gap-2.5 overflow-hidden whitespace-nowrap rounded-[10px] bg-brand px-[18px] text-sm font-semibold text-brand-ink transition-transform duration-300 ease-out-expo active:scale-[.97] }
   .btn::after { content: ""; @apply absolute inset-0 -z-10 -translate-x-full bg-white/35 transition-transform duration-500 ease-out-expo }
   .btn:hover::after { @apply translate-x-0 }
-  .btn-big { @apply min-h-14 rounded-xl px-[26px] text-base }
+  .btn-big { @apply min-h-14 rounded-xl px-[26px] text-base max-sm:px-4 max-sm:text-[15px] }
   .btn-ghost { @apply bg-p2 text-fg }
   .btn-ghost::after { @apply bg-p3 }
 
@@ -72,6 +72,11 @@ summary::-webkit-details-marker { display: none }
 }
 
 .rec-dot { animation: blink 1.2s steps(2) infinite }
+/* phones: a finger-dot sweeping side to side tells people the timeline swipes */
+.swipe-hint { animation: hint-in .6s 1.4s both }
+.swipe-dot { animation: swipe 1.6s 1.4s ease-in-out infinite; box-shadow: 0 0 0 4px rgb(163 230 53 / .25) }
+@keyframes hint-in { from { opacity: 0; transform: translateY(6px) } }
+@keyframes swipe { 0%, 100% { transform: translateX(-12px) scale(1) } 45% { transform: translateX(12px) scale(.85) } 55% { transform: translateX(12px) scale(.85) } }
 @keyframes blink { 50% { opacity: 0 } }
 
 @media (prefers-reduced-motion: reduce) {

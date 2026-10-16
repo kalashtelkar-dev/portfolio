@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { FIVERR_URL, WORKS, timecode } from "@/data/site";
-import { gsap, ScrollTrigger, useGSAP, reducedMotion, scrollToY, usePauseOffscreen } from "@/lib/motion";
+import { gsap, ScrollTrigger, useGSAP, reducedMotion, scrollToY, usePauseOffscreen, CLEAR } from "@/lib/motion";
 
 const PX = 46; // timeline pixels per second
 const TOTAL = WORKS.reduce((a, w) => a + w.seconds, 0);
@@ -21,8 +21,11 @@ export default function Editor() {
   const dragged = useRef(false);
   const [cur, setCur] = useState(0);
   const [playing, setPlaying] = useState(true);
+  const [hint, setHint] = useState(true); // phones: "swipe" cue until the first touch
+  const playingRef = useRef(true);
   const w = WORKS[cur];
   usePauseOffscreen(root, playing);
+  useEffect(() => { playingRef.current = playing }, [playing]);
 
   // Move the lanes so time t sits under the playhead, and follow it on the monitor.
   const seek = (t: number) => {
@@ -88,26 +91,40 @@ export default function Editor() {
       });
       return () => { trigger.current = null };
     });
-    // Phones: drag the timeline
+    // Phones: the reel plays itself in real time; swiping the timeline scrubs it, and
+    // autoplay picks up again a few seconds after the finger lifts.
     mm.add("(max-width: 980px)", () => {
       const lw = laneWrap.current!;
-      let t0 = 0, sx = 0, down_ = false;
-      const down = (e: PointerEvent) => { sx = e.clientX; t0 = tRef.current; down_ = true; dragged.current = false };
+      let t0 = 0, sx = 0, down_ = false, last = performance.now(), idleUntil = 0, inView = true;
+      const io = new IntersectionObserver(([e]) => { inView = e.isIntersecting });
+      io.observe(lw);
+      const tick = () => {
+        const now = performance.now(), dt = Math.min(0.1, (now - last) / 1000);
+        last = now;
+        if (down_ || now < idleUntil || !playingRef.current || !inView || reducedMotion()) return;
+        const t = tRef.current + dt;
+        seek(t >= TOTAL - 0.01 ? 0 : t);
+      };
+      gsap.ticker.add(tick);
+      const down = (e: PointerEvent) => { sx = e.clientX; t0 = tRef.current; down_ = true; dragged.current = false; setHint(false) };
       const move = (e: PointerEvent) => {
         if (!down_) return;
         if (Math.abs(e.clientX - sx) > 6) dragged.current = true;
         seek(Math.max(0, Math.min(TOTAL - 0.01, t0 - (e.clientX - sx) / PX)));
       };
-      const up = () => { down_ = false };
+      const up = () => { if (down_) idleUntil = performance.now() + 3000; down_ = false };
       lw.addEventListener("pointerdown", down); addEventListener("pointermove", move); addEventListener("pointerup", up); addEventListener("pointercancel", up);
-      return () => { lw.removeEventListener("pointerdown", down); removeEventListener("pointermove", move); removeEventListener("pointerup", up); removeEventListener("pointercancel", up) };
+      return () => {
+        gsap.ticker.remove(tick); io.disconnect();
+        lw.removeEventListener("pointerdown", down); removeEventListener("pointermove", move); removeEventListener("pointerup", up); removeEventListener("pointercancel", up);
+      };
     });
     if (!reducedMotion()) {
       gsap.timeline({ defaults: { ease: "expo.out" } })
-        .from(".panel", { opacity: 0, scale: 0.96, y: 30, duration: 1.1, stagger: 0.1 })
-        .from(".ln > span", { yPercent: 110, duration: 1.1, stagger: 0.1 }, "-=.8")
-        .from(".pitch-rest > *", { opacity: 0, y: 20, duration: 0.9, stagger: 0.08 }, "-=.8")
-        .from(".clip", { scaleX: 0, transformOrigin: "left", duration: 0.9, stagger: 0.015 }, "-=1");
+        .from(".panel", { clearProps: CLEAR, opacity: 0, scale: 0.96, y: 30, duration: 1.1, stagger: 0.1 })
+        .from(".ln > span", { clearProps: CLEAR, yPercent: 110, duration: 1.1, stagger: 0.1 }, "-=.8")
+        .from(".pitch-rest > *", { clearProps: CLEAR, opacity: 0, y: 20, duration: 0.9, stagger: 0.08 }, "-=.8")
+        .from(".clip", { clearProps: CLEAR, scaleX: 0, transformOrigin: "left", duration: 0.9, stagger: 0.015 }, "-=1");
     }
   }, { scope: root });
 
@@ -136,7 +153,7 @@ export default function Editor() {
                 <span className="ln block overflow-hidden pb-[.04em]"><span className="block text-brand">strike first.</span></span>
               </h1>
               <div className="pitch-rest grid gap-[18px]">
-                <p className="max-w-[40ch] text-[clamp(15px,1.1vw,17px)] text-dim">AdsCut edits UGC and product ads from your raw footage. <span className="max-[980px]:hidden">Scroll to scrub the reel: the monitor plays whatever is under the playhead.</span><span className="min-[981px]:hidden">Drag the timeline below to scrub the reel.</span></p>
+                <p className="max-w-[40ch] text-[clamp(15px,1.1vw,17px)] text-dim">AdsCut edits UGC and product ads from your raw footage. <span className="max-[980px]:hidden">Scroll to scrub the reel: the monitor plays whatever is under the playhead.</span><span className="min-[981px]:hidden">The reel plays below. Swipe the timeline to scrub it.</span></p>
                 <div className="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap">
                   <a className="btn btn-big justify-center" href={FIVERR_URL} target="_blank" rel="noopener">Order on Fiverr</a>
                   <a className="btn btn-big btn-ghost justify-center" href="#bin">See the work</a>
@@ -164,7 +181,7 @@ export default function Editor() {
             <div ref={flash} className="pointer-events-none absolute inset-0 bg-white opacity-0" />
           </div>
           <div className="flex items-center justify-between gap-3 border-t border-line px-3 py-2 font-mono text-xs text-dim">
-            <span ref={(el) => { if (el) tcRefs.current[1] = el }}>00:00:00:00</span>
+            <span ref={(el) => { if (el) tcRefs.current[1] = el }} className="whitespace-nowrap">00:00:00:00</span>
             <div className="flex gap-1 text-fg">
               <button className="grid size-9 place-items-center rounded-lg hover:bg-p3" aria-label="Previous clip" onClick={() => goTo(cur - 1)}><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden><path d="M3 3v10M13 3 6 8l7 5z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" /></svg></button>
               <button className="grid size-9 place-items-center rounded-lg hover:bg-p3" aria-label={playing ? "Pause" : "Play"}
@@ -173,14 +190,14 @@ export default function Editor() {
               </button>
               <button className="grid size-9 place-items-center rounded-lg hover:bg-p3" aria-label="Next clip" onClick={() => goTo(cur + 1)}><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden><path d="M13 3v10M3 3l7 5-7 5z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" /></svg></button>
             </div>
-            <span>Reel {timecode(TOTAL).slice(3, 8)}</span>
+            <span className="whitespace-nowrap">Reel {timecode(TOTAL).slice(3, 8)}</span>
           </div>
         </div>
       </div>
 
       {/* Timeline */}
       <div className="panel grid h-[clamp(170px,26svh,250px)] grid-rows-[auto_1fr] max-[980px]:order-2">
-        <div className="ph"><b className="font-medium text-fg">Timeline: showreel</b><span className="max-[980px]:hidden">Scroll to scrub</span><span className="min-[981px]:hidden">Drag to scrub</span><span className="font-mono">{WORKS.length} clips</span></div>
+        <div className="ph"><b className="font-medium text-fg">Timeline: showreel</b><span className="max-[980px]:hidden">Scroll to scrub</span><span className="min-[981px]:hidden">Swipe to scrub</span><span className="font-mono">{WORKS.length} clips</span></div>
         <div className="relative grid grid-cols-[54px_1fr] overflow-hidden">
           <div className="lanes border-r border-line font-mono text-[11px] font-medium text-dim" aria-hidden>
             {["", "V2", "V1", "A1"].map((t) => <span key={t} className="grid place-items-center border-b border-line">{t}</span>)}
@@ -204,6 +221,14 @@ export default function Editor() {
               </div>
             </div>
             <div className="playhead" aria-hidden />
+            {hint && (
+              <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center min-[981px]:hidden" aria-hidden>
+                <span className="swipe-hint flex items-center gap-2.5 rounded-full bg-black/80 py-2 pr-3.5 pl-2.5 text-xs font-medium text-fg shadow-[0_6px_24px_rgb(0_0_0/.5)]">
+                  <span className="relative h-4 w-9"><i className="swipe-dot absolute top-1/2 left-1/2 -mt-1.5 -ml-1.5 size-3 rounded-full bg-brand" /></span>
+                  Swipe to scrub
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { FILTERS, WORKS, type Category, type Work } from "@/data/site";
-import { gsap, reducedMotion, scroller, ScrollTrigger } from "@/lib/motion";
+import { gsap, reducedMotion, scroller, ScrollTrigger, CLEAR } from "@/lib/motion";
 
 export default function Bin() {
   const [filter, setFilter] = useState<Category | "all">("all");
@@ -9,13 +9,34 @@ export default function Bin() {
   const grid = useRef<HTMLDivElement>(null);
   const viewer = useRef<HTMLDivElement>(null);
   const closeBtn = useRef<HTMLButtonElement>(null);
+  const [live, setLive] = useState<string[]>([]); // phones: the row of clips at the middle of the screen plays
   const shown = WORKS.filter((w) => filter === "all" || w.category === filter);
+
+  // Touch screens can't hover, so play the row nearest the middle of the screen instead.
+  // One row at a time keeps the grid calm and only ever decodes two small loops.
+  useEffect(() => {
+    if (!matchMedia("(hover: none)").matches || reducedMotion()) return;
+    let raf = 0;
+    const pick = () => {
+      raf = 0;
+      const tiles = [...(grid.current?.children ?? [])] as HTMLElement[], mid = innerHeight / 2;
+      let best: DOMRect | null = null, dist = Infinity;
+      for (const t of tiles) { const r = t.getBoundingClientRect(), d = Math.abs(r.top + r.height / 2 - mid); if (d < dist) { dist = d; best = r } }
+      const next = best && dist < innerHeight / 2 ? tiles.filter((t) => Math.abs(t.getBoundingClientRect().top - best!.top) < 4).map((t) => t.dataset.src!) : [];
+      tiles.forEach((t) => { if (!next.includes(t.dataset.src!)) (t.querySelector("[data-bar]") as HTMLElement).style.width = "0" });
+      setLive((prev) => (prev.join() === next.join() ? prev : next));
+    };
+    const onScroll = () => { raf ||= requestAnimationFrame(pick) };
+    pick();
+    addEventListener("scroll", onScroll, { passive: true }); addEventListener("resize", onScroll);
+    return () => { cancelAnimationFrame(raf); removeEventListener("scroll", onScroll); removeEventListener("resize", onScroll) };
+  }, [filter]);
 
   // Re-cut the grid in with a wipe whenever the filter changes
   useEffect(() => {
     ScrollTrigger.refresh();
     if (reducedMotion() || filter === "all") return;
-    gsap.fromTo(grid.current!.children, { opacity: 0, y: 24, clipPath: "inset(0 100% 0 0)" }, { opacity: 1, y: 0, clipPath: "inset(0 0% 0 0)", duration: 0.7, stagger: 0.04, ease: "expo.out" });
+    gsap.fromTo(grid.current!.children, { opacity: 0, y: 24, clipPath: "inset(0 100% 0 0)" }, { opacity: 1, y: 0, clipPath: "inset(0 0% 0 0)", clearProps: CLEAR, duration: 0.7, stagger: 0.04, ease: "expo.out" });
   }, [filter]);
 
   const close = () => {
@@ -45,26 +66,34 @@ export default function Bin() {
           ))}
         </div>
       </div>
-      <p className="-mt-4 mb-6 text-dim"><span className="max-sm:hidden">Move across a thumbnail to scrub it, click to play.</span><span className="sm:hidden">Tap a clip to play it.</span></p>
+      <p className="-mt-4 mb-6 text-dim"><span className="max-sm:hidden">Move across a thumbnail to scrub it, click to play.</span><span className="sm:hidden">Clips play as you scroll. Tap one to watch it with sound.</span></p>
 
       <div ref={grid} className="grid grid-cols-2 gap-2.5 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] sm:gap-3.5">
         {shown.map((w) => (
-          <button key={w.src} onClick={() => setOpen(w)} aria-label={`Play ${w.title}`}
-            className="tile grid min-w-0 gap-2.5 rounded-[14px] border border-line bg-p1 p-2 sm:p-2.5 text-left transition-[border-color,transform,background-color] duration-500 ease-out-expo hover:-translate-y-1 hover:border-brand hover:bg-p2">
+          <button key={w.src} data-src={w.src} onClick={() => setOpen(w)} aria-label={`Play ${w.title}`}
+            className="tile grid min-w-0 gap-2.5 rounded-[14px] border border-line bg-p1 p-2 sm:p-2.5 text-left transition-[border-color,translate,background-color] duration-500 ease-out-expo hover:-translate-y-1 hover:border-brand hover:bg-p2">
             <span className="relative aspect-[4/5] overflow-hidden rounded-lg bg-black"
               onPointerMove={(e) => {
+                if (e.pointerType !== "mouse") return; // touch scrolls; the centred row plays instead
                 const r = e.currentTarget.getBoundingClientRect(), p = Math.min(0.999, Math.max(0, (e.clientX - r.left) / r.width));
                 e.currentTarget.querySelector("img")!.src = `/media/${w.src}-${Math.floor(p * 6)}.jpg`;
-                (e.currentTarget.lastElementChild as HTMLElement).style.width = p * 100 + "%";
+                (e.currentTarget.querySelector("[data-bar]") as HTMLElement).style.width = p * 100 + "%";
               }}
               onPointerLeave={(e) => {
+                if (e.pointerType !== "mouse") return;
                 e.currentTarget.querySelector("img")!.src = `/media/${w.src}-0.jpg`;
-                (e.currentTarget.lastElementChild as HTMLElement).style.width = "0";
+                (e.currentTarget.querySelector("[data-bar]") as HTMLElement).style.width = "0";
               }}>
               <img src={`/media/${w.src}-0.jpg`} alt="" loading="lazy" className="size-full object-cover" />
+              {!open && live.includes(w.src) && (
+                <video src={`/media/${w.src}.mp4`} muted loop playsInline autoPlay aria-hidden
+                  className="absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-500"
+                  onPlaying={(e) => (e.currentTarget.style.opacity = "1")}
+                  onTimeUpdate={(e) => { const v = e.currentTarget; (v.parentElement!.querySelector("[data-bar]") as HTMLElement).style.width = (v.currentTime / v.duration) * 100 + "%" }} />
+              )}
               <span className="absolute top-2 left-2 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[11px]">{w.format}</span>
               <span className="absolute right-2 bottom-2 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[11px]">0:{String(w.length).padStart(2, "0")}</span>
-              <span className="absolute bottom-0 left-0 h-[3px] w-0 bg-brand" />
+              <span data-bar className="absolute bottom-0 left-0 h-[3px] w-0 bg-brand transition-[width] duration-300 ease-linear" />
             </span>
             <span className="flex justify-between gap-x-2 px-0.5 text-sm max-sm:flex-col"><b className="truncate font-semibold">{w.title}</b><span className="text-[13px] text-dim">{w.label}</span></span>
           </button>

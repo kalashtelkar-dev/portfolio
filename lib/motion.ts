@@ -9,6 +9,11 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 export { gsap, ScrollTrigger, useGSAP };
 
+// Entrance tweens clear what they set when they land. Without this, a tween that runs twice
+// (React dev remounts, a refresh mid-flight) takes the half-finished state as its end and
+// leaves elements stuck out of place.
+export const CLEAR = "transform,opacity,clipPath,transformOrigin";
+
 // One smooth scroller for the page, set by <SmoothScroll />.
 export const scroller: { lenis: Lenis | null } = { lenis: null };
 
